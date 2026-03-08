@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPGALAXY Voice</title>
+
+    <link rel="icon" type="https://logos-world.net/wp-content/uploads/2020/12/Discord-Logo.png">
+
+    <style>
+        /* --- BACKGROUND (UNVERÄNDERT) --- */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #0a0c11;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; color: white;
+        }
+
+        .bg-glow {
+            position: absolute; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #111827 0%, #0a0c11 100%);
+            z-index: 1;
+        }
+
+        .bg-line {
+            position: absolute; width: 200%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(88, 101, 242, 0.3), transparent);
+            transform: rotate(-20deg);
+            animation: moveLines 15s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes moveLines {
+            from { top: -10%; left: -50%; }
+            to { top: 110%; left: 50%; }
+        }
+
+        @keyframes flyInRight {
+            0% { transform: translateX(100vw); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        /* --- HAUPT CARD --- */
+        .main-card {
+            position: relative; z-index: 10;
+            background: #12171f;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 5px 30px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            animation: flyInRight 0.7s ease-out forwards;
+        }
+
+        .logo-text {
+            font-size: 32px; font-weight: 900; font-style: italic;
+            letter-spacing: -1px; margin: 0;
+            color: #ffffff;
+        }
+        .logo-sub {
+            color: #5865F2; font-size: 11px; font-weight: bold;
+            letter-spacing: 4px; margin-top: 2px;
+        }
+
+        /* --- BUTTONS: LANG & SCHMAL --- */
+        .btn-blue {
+            background-color: #5865F2;
+            color: white; border: none; border-radius: 4px;
+            padding: 8px 0;
+            width: 100%;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: 0.2s;
+            margin-top: 25px;
+        }
+
+        .btn-blue:hover { background-color: #4752C4; }
+
+        .spinner {
+            width: 12px; height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- WEISSES VERSCHIEBBARES MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: none;
+            z-index: 100;
+        }
+
+        .modal-box {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 0px; width: 580px; text-align: center;
+            color: #1a1a1a;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.4);
+            top: -500px; 
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 0.6s cubic-bezier(0.17, 0.84, 0.44, 1);
+            padding-bottom: 300px;
+        }
+
+        .modal-header {
+            padding: 10px;
+            cursor: move;
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .modal-body { padding: 20px 30px; }
+
+        .input-style {
+            width: calc(100% - 20px); background: #f1f3f6; border: 1px solid #ddd;
+            border-radius: 0px; padding: 10px; color: #000;
+            margin-bottom: 14px; outline: none; font-size: 13px;
+            text-align: center;
+        }
+
+        .footer { margin-top: 25px; font-size: 10px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-line"></div>
+
+    <div class="main-card">
+        <div class="logo-area">
+            <h1 class="logo-text">OPGALAXY</h1>
+            <div class="logo-sub">VOICE</div>
+        </div>
+
+        <button class="btn-blue" id="mainBtn" onclick="startLoading()">
+            <div class="spinner" id="btnSpinner"></div>
+            <span id="btnText">Mit Discord verbinden</span>
+        </button>
+
+        <div class="footer">
+            Wir sind nicht offiziel mit Discord verbunden. <br> <a href="https://discord.com" style="color:#5865F2; text-decoration:none;">Zu discord.com</a>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box" id="draggableBox">
+            <div class="modal-header" id="dragHandle">
+                <span id="modeTitle">Zugangscode eingeben</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="input-style" id="accessCode" placeholder="Code hier eingeben">
+                
+                <button class="btn-blue" style="margin-top: 10px; width: 100%;" onclick="verifyCode()">Prüfen & Verbinden</button>
+                
+                <button onclick="closeAuth()" style="background:none; border:none; color:#999; cursor:pointer; margin-top:15px; font-size:13px;">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startLoading() {
+            const btn = document.getElementById('mainBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const text = document.getElementById('btnText');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            text.style.display = 'none';
+
+            setTimeout(() => {
+                openAuth();
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                text.style.display = 'block';
+            }, 1500);
+        }
+
+        function openAuth() { 
+            const overlay = document.getElementById('authModal');
+            const box = document.getElementById('draggableBox');
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                box.style.top = '100px';
+            }, 50);
+        }
+
+        function closeAuth() { 
+            const box = document.getElementById('draggableBox');
+            box.style.top = '-500px';
+            setTimeout(() => {
+                document.getElementById('authModal').style.display = 'none';
+            }, 600);
+        }
+
+        // Neue Funktion zur Überprüfung des Codes und Weiterleitung
+        function verifyCode() {
+            const codeInput = document.getElementById('accessCode').value;
+            const correctCode = "JyFRxfAcQw";
+
+            if(codeInput === correctCode) {
+                window.location.href = "https://discord.gg/JyFRxfAcQw";
+            } else {
+                alert("Ungültiger Zugangscode!");
+            }
+        }
+
+        /* --- DRAG LOGIK --- */
+        const box = document.getElementById("draggableBox");
+        const handle = document.getElementById("dragHandle");
+        let isDragging = false;
+        let offset = { x: 0, y: 0 };
+
+        handle.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            offset.x = e.clientX - box.offsetLeft;
+            offset.y = e.clientY - box.offsetTop;
+            box.style.transition = 'none';
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            box.style.left = (e.clientX - offset.x + (box.offsetWidth / 2)) + "px";
+            box.style.top = (e.clientY - offset.y) + "px";
+            box.style.transform = 'translateX(-50%)';
+        });
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+    </script>
+</body>
+</html>
